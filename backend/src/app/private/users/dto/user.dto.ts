@@ -1,6 +1,6 @@
-import { Optional } from "@nestjs/common";
-import { IsNotEmpty, IsString, MaxLength } from "class-validator";
-import { MeasuresOfLength } from "src/utils/other/Constants";
+import { Optional } from '@nestjs/common';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { MeasuresOfLength } from 'src/utils/other/constants';
 
 export class UserDto {
   @IsString()
@@ -20,4 +20,8 @@ export class UserDto {
 export class ResetPasswordDto {
   old_password: string;
   new_password: string;
+}
+
+export class User extends UserDto {
+  id: string;
 }

@@ -7,11 +7,13 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AbstractController } from 'src/abstractions/abstract.controller';
 import { ResetPasswordDto, UserDto } from './dto/user.dto';
 import bcrypt from 'bcrypt';
+import { IAuthorizedRequest } from 'src/utils/types/authorized.request';
 
 @Controller('users')
 export class UserController extends AbstractController {
@@ -36,5 +38,7 @@ export class UserController extends AbstractController {
 
   // Todo: implement this method
   @Delete(':id')
-  async deleteOne(@Param('id') id: string) {}
+  async deleteOne(@Param('id') id: string) {
+    return await this.userService.delete(id)
+  }
 }

@@ -61,7 +61,7 @@ export class UserService extends AbstractService {
         user = await this.findById(entity);
         break;
     }
-    if (!user) throw new DoesNotExistsException();
+    if (!user) throw new DoesNotExistsException('user');
     return user;
   }
 
@@ -71,10 +71,10 @@ export class UserService extends AbstractService {
       this.findByUsername(dto.username),
     ]);
     if (userByEmail) {
-      throw new AlreadyExistsException();
+      throw new AlreadyExistsException('user');
     }
     if (userByName) {
-      throw new AlreadyExistsException();
+      throw new AlreadyExistsException('user');
     }
     const new_user = await this.db.users.create({
       data: {
@@ -93,7 +93,7 @@ export class UserService extends AbstractService {
 
   async resetPassword(id: string, dto: ResetPasswordDto) {
     const existed = await this.findById(id);
-    if (!existed) throw new DoesNotExistsException();
+    if (!existed) throw new DoesNotExistsException('user');
     if (!(await bcrypt.compare(dto.old_password, existed.password)))
       throw new PasswordNotMatch();
     return await this.db.users.update({
@@ -106,5 +106,11 @@ export class UserService extends AbstractService {
     });
   }
 
-  async delete() {}
+  async delete(id: string) {
+    const userExists = await this.db.users.findUnique({ where: { id } });
+    if (!userExists) {
+      throw new DoesNotExistsException('user');
+    }
+    return await this.db.users.delete({ where: { id } });
+  }
 }

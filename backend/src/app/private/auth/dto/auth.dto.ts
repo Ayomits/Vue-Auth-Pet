@@ -1,6 +1,6 @@
 import { Optional } from '@nestjs/common';
 import { IsEmail, IsString, MaxLength } from 'class-validator';
-import { MeasuresOfLength } from 'src/utils/other/Constants';
+import { MeasuresOfLength } from 'src/utils/other/constants';
 
 export class AuthDto {
   @IsString()
@@ -14,4 +14,8 @@ export class AuthDto {
   // email?: string;
 
   password: string;
+}
+
+export class RevokeTokenDto {
+  token: string;
 }

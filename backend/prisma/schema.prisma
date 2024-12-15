@@ -10,7 +10,7 @@ datasource db {
 model users {
   id         String    @id @default(uuid())
   username   String    @unique @db.VarChar(128)
-  email      String?    @unique @db.VarChar(512)
+  email      String?   @unique @db.VarChar(512)
   password   String
   created_at DateTime? @default(now())
   updated_at DateTime? @updatedAt
@@ -22,7 +22,7 @@ model profiles {
   global_name String?  @db.VarChar(128)
   avatar_url  String?
   user_id     String   @unique
-  User        users    @relation(fields: [user_id], references: [id])
+  User        users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 }

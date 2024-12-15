@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class AlreadyExistsException extends HttpException {
-  constructor() {
+  constructor(entity: string) {
     super(
       {
-        message: 'This entity already exists',
+        message: `This ${entity} already exists`,
       },
       HttpStatus.BAD_REQUEST,
     );

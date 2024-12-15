@@ -1,3 +1,5 @@
+import * as bcrypt from 'bcrypt';
+import * as _ from 'lodash';
 import { Injectable } from '@nestjs/common';
 import { AbstractService } from 'src/abstractions/abstract.service';
 import { UserService } from '../users/user.service';
@@ -5,7 +7,6 @@ import { UserDto } from '../users/dto/user.dto';
 import { AuthDto } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { DoesNotExistsException } from 'src/common/exceptions/doesNotExists.exception';
-import * as bcrypt from 'bcrypt';
 import { PasswordNotMatch } from 'src/common/exceptions/passwordNotMatch';
 
 export enum TokenType {
@@ -23,12 +24,15 @@ export class AuthService extends AbstractService {
   }
 
   async signToken(newUser: any) {
+    const noPasswordUser = _.omit(newUser, ['password']);
     const [access_token, refresh_token] = await Promise.all([
-      this.jwtService.sign(newUser, {
+      this.jwtService.sign(noPasswordUser, {
         secret: this.configService.get(TokenType.ACCESS),
+        expiresIn: '15m',
       }),
-      this.jwtService.sign(newUser, {
+      this.jwtService.signAsync(noPasswordUser, {
         secret: this.configService.get(TokenType.REFRESH),
+        expiresIn: '7d',
       }),
     ]);
     return {
@@ -55,8 +59,8 @@ export class AuthService extends AbstractService {
   async login(dto: AuthDto) {
     const existed =
       // (await this.userService.findByEmail(dto.email)) ||
-      (await this.userService.findByUsername(dto.username));
-    if (!existed) throw new DoesNotExistsException();
+      await this.userService.findByUsername(dto.username);
+    if (!existed) throw new DoesNotExistsException('user');
     if (!(await bcrypt.compare(dto.password, existed.password)))
       throw new PasswordNotMatch();
     return {
