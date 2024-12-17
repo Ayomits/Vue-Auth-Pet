@@ -17,8 +17,12 @@ import { ref } from "vue";
 import { authService } from "@/utils/api/auth.service";
 import { requiredRule } from "@/utils/validation/requiredRule";
 import { IAuthFieldProps } from "@/components/Auth/AuthField.vue";
+import { passwordRules } from "@/utils/validation/passwordRules";
+
 const username = ref<string>("");
 const password = ref<string>("");
+const retypePassword = ref<string>("");
+
 const fields: IAuthFieldProps[] = [
     {
         label: "Логин",
@@ -34,16 +38,32 @@ const fields: IAuthFieldProps[] = [
         prependIcon: "mdi-lock",
         isPassword: true,
         isVisible: true,
-        rules: [requiredRule],
+        rules: [requiredRule, ...passwordRules],
+    },
+    {
+        label: "Повторите пароль",
+        placeholder: "Повторите свой пароль",
+        prependIcon: "mdi-lock",
+        isPassword: true,
+        isVisible: false,
+        model: retypePassword,
+        rules: [
+            requiredRule,
+            (_v: any) =>
+                password.value === retypePassword.value ||
+                "Пароли не совпадают",
+        ],
     },
 ];
+
 const bottomInfo = {
-    message: "Нет аккаунта?",
-    linkMessage: "Регистрация",
-    link: Routes.auth.register,
+    message: "Уже есть аккаунт?",
+    linkMessage: "Авторизация",
+    link: Routes.auth.login,
 };
+
 const onSubmit = async () => {
-    const login = await authService.login({
+    const login = await authService.register({
         username: username.value,
         password: password.value,
     });
@@ -51,13 +71,13 @@ const onSubmit = async () => {
     if (login?.status && [200, 201].includes(login.status)) {
         return {
             status: true,
-            message: "Успешная авторизация!",
+            message: "Успешная регистрация!",
         };
     } else {
         const messageByCode: { [key: number]: string } = {
-            401: "Неверный логин или пароль",
+            400: "Пользователь с таким именем уже существует",
             500: "Внутренняя ошибка сервера",
-            429: "Вы слишком часто пробуете авторизироваться! Попробуйте через 15 минут",
+            429: "Вы слишком часто пробуете регистрироваться. Попробуйте через 30 минут",
         };
         return {
             status: false,

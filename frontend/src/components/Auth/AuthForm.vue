@@ -12,7 +12,13 @@
             :rules="field.rules"
         />
         <div class="max-w-[50%] mx-auto">
-            <v-btn type="submit" color="primary" width="100" class="roundex-xl">
+            <v-btn
+                type="submit"
+                :loading="isLoading"
+                color="primary"
+                width="100"
+                class="roundex-xl"
+            >
                 {{ submitText }}
             </v-btn>
         </div>
@@ -36,6 +42,7 @@ import { Routes } from "@/utils/other/Routes";
 import { IAuthFieldProps } from "./AuthField.vue";
 import AuthField from "./AuthField.vue";
 import { VForm } from "vuetify/components";
+import router from "@/pluging/router";
 
 const { fields, submitText, onSubmit } = defineProps<{
     fields: IAuthFieldProps[];
@@ -57,8 +64,8 @@ const validateBeforeSubmit = async (ev: SubmitEvent) => {
         status: boolean;
         message: string;
     };
-    isLoading.value = false;
 
+    isLoading.value = false;
     notificationType.value = status ? "success" : "error";
     notificationMessage.value = message;
     notificationVisible.value = true;
@@ -69,7 +76,7 @@ const validateBeforeSubmit = async (ev: SubmitEvent) => {
 
     form.value?.reset();
     if (status) {
-        window.location.href = Routes.main;
+        router.push(Routes.dashboard.main);
     }
 };
 </script>

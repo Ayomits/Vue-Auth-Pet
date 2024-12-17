@@ -1,6 +1,10 @@
+import { useAuthStore } from "@/stores/auth.store";
 import { AbstractService } from "./abstract.service";
 // @ts-ignore
 import { AxiosError } from "axios";
+// @ts-ignore
+import { AxiosResponse } from "axios";
+import { TOKEN_KEY } from "../other/Constants";
 
 interface AuthDto {
     username: string;
@@ -9,17 +13,51 @@ interface AuthDto {
 interface RevokeDto {
     token: string;
 }
+interface AuthResponse {
+    access_token: string;
+    refresh_token: string;
+}
 
 class AuthService extends AbstractService {
+    private saveToStore(tokens: {
+        accessToken?: string;
+        refreshToken?: string;
+    }) {
+        const authStore = useAuthStore();
+        authStore.saveTokens(tokens.accessToken, tokens.refreshToken);
+    }
+
+    private async handleAuthResponse(res: AxiosResponse) {
+        const { data } = res;
+
+        if (res?.status && [200, 201].includes(res.status)) {
+            const { access_token, refresh_token } = data as AuthResponse;
+            this.saveToStore({
+                accessToken: access_token,
+                refreshToken: refresh_token,
+            });
+            localStorage.setItem(
+                TOKEN_KEY,
+                JSON.stringify({
+                    access_token,
+                    refresh_token,
+                })
+            );
+        }
+        return res;
+    }
+
     async login(dto: AuthDto) {
-        return await this.axios.post("/auth/login", {
+        const login = await this.axios.post("/auth/login", {
             ...dto,
         });
+        return await this.handleAuthResponse(login);
     }
     async register(dto: AuthDto) {
-        return await this.axios.post("/auth/register", {
+        const register = await this.axios.post("/auth/register", {
             ...dto,
         });
+        return await this.handleAuthResponse(register);
     }
     async revoke(dto: RevokeDto) {
         return await this.axios.post("/auth/revoke", { ...dto });
