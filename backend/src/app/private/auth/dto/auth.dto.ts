@@ -13,9 +13,11 @@ export class AuthDto {
   // @MaxLength(MeasuresOfLength.LARGE)
   // email?: string;
 
+  @IsString()
   password: string;
 }
 
 export class RevokeTokenDto {
+  @IsString()
   token: string;
 }

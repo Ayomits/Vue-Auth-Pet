@@ -1,4 +1,10 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AbstractController } from 'src/abstractions/abstract.controller';
 import { AuthDto, RevokeTokenDto } from './dto/auth.dto';
 import { AuthService, TokenType } from './auth.service';
@@ -28,10 +34,10 @@ export class AuthController extends AbstractController {
       TokenType.REFRESH,
     );
     if (!isValid) {
-      throw new BadRequestException('Token is Invalid');
+      throw new UnauthorizedException('Token is Invalid');
     }
     const { access_token } = await this.authService.signToken(
-      _.omit(isValid, ['iat']),
+      _.omit(isValid, ['iat', 'expiresIn', 'exp']),
     );
     return {
       access_token,

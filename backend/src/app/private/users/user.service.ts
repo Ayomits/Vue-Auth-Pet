@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AbstractService } from 'src/abstractions/abstract.service';
 import { ResetPasswordDto, UserDto } from './dto/user.dto';
-import * as bcrypt from 'bcrypt';
 import { AlreadyExistsException } from 'src/common/exceptions/alreadyExists.exception';
 import { DoesNotExistsException } from 'src/common/exceptions/doesNotExists.exception';
 import { PasswordNotMatch } from 'src/common/exceptions/passwordNotMatch';
+import * as bcrypt from 'bcrypt';
+import * as _ from 'lodash';
 
 export enum FindUserType {
   UserId = 'id',
@@ -14,6 +15,9 @@ export enum FindUserType {
 
 @Injectable()
 export class UserService extends AbstractService {
+  /**
+   * Low level method
+   */
   async findById(id: string) {
     return await this.db.users.findFirst({
       where: {
@@ -29,6 +33,9 @@ export class UserService extends AbstractService {
     });
   }
 
+  /**
+   * Low level method
+   */
   async findByUsername(username: string) {
     return await this.db.users.findFirst({
       where: {
@@ -37,6 +44,9 @@ export class UserService extends AbstractService {
     });
   }
 
+  /**
+   * Low level method
+   */
   async findByEmail(email: string) {
     return await this.db.users.findFirst({
       where: {
@@ -45,6 +55,12 @@ export class UserService extends AbstractService {
     });
   }
 
+  /**
+   * High level method
+   * @param entity - email/username/id of user
+   * @param type - by the fact that we make a query to the database
+   *
+   */
   async findOne(entity: string, type: string) {
     let user;
     switch (type) {
@@ -62,17 +78,11 @@ export class UserService extends AbstractService {
         break;
     }
     if (!user) throw new DoesNotExistsException('user');
-    return user;
+    return this.omitUser(user);
   }
 
   async create(dto: UserDto) {
-    const [userByEmail, userByName] = await Promise.all([
-      this.findByEmail(dto.email),
-      this.findByUsername(dto.username),
-    ]);
-    if (userByEmail) {
-      throw new AlreadyExistsException('user');
-    }
+    const [userByName] = await Promise.all([this.findByUsername(dto.username)]);
     if (userByName) {
       throw new AlreadyExistsException('user');
     }
@@ -88,7 +98,11 @@ export class UserService extends AbstractService {
         },
       },
     });
-    return new_user;
+    return this.omitUser(new_user);
+  }
+
+  private omitUser(user: UserDto) {
+    return _.omit(user, ['password']);
   }
 
   async resetPassword(id: string, dto: ResetPasswordDto) {
@@ -96,7 +110,7 @@ export class UserService extends AbstractService {
     if (!existed) throw new DoesNotExistsException('user');
     if (!(await bcrypt.compare(dto.old_password, existed.password)))
       throw new PasswordNotMatch();
-    return await this.db.users.update({
+    const updated = await this.db.users.update({
       where: {
         id: id,
       },
@@ -104,6 +118,7 @@ export class UserService extends AbstractService {
         password: await bcrypt.hash(dto.new_password, 10),
       },
     });
+    return this.omitUser(updated);
   }
 
   async delete(id: string) {
@@ -111,6 +126,7 @@ export class UserService extends AbstractService {
     if (!userExists) {
       throw new DoesNotExistsException('user');
     }
-    return await this.db.users.delete({ where: { id } });
+    const deleted = await this.db.users.delete({ where: { id } });
+    return this.omitUser(deleted);
   }
 }

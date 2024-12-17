@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import * as _ from 'lodash';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AbstractService } from 'src/abstractions/abstract.service';
 import { UserService } from '../users/user.service';
 import { UserDto } from '../users/dto/user.dto';
@@ -60,7 +60,7 @@ export class AuthService extends AbstractService {
     const existed =
       // (await this.userService.findByEmail(dto.email)) ||
       await this.userService.findByUsername(dto.username);
-    if (!existed) throw new DoesNotExistsException('user');
+    if (!existed) throw new UnauthorizedException();
     if (!(await bcrypt.compare(dto.password, existed.password)))
       throw new PasswordNotMatch();
     return {

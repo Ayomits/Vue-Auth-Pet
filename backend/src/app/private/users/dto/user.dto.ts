@@ -1,5 +1,10 @@
-import { Optional } from '@nestjs/common';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  IsOptional,
+  IsEmail,
+} from 'class-validator';
 import { MeasuresOfLength } from 'src/utils/other/constants';
 
 export class UserDto {
@@ -7,11 +12,10 @@ export class UserDto {
   @MaxLength(MeasuresOfLength.MIDDLE)
   username: string;
 
-  @MaxLength(MeasuresOfLength.LARGE)
-  @IsString()
-  @Optional()
-  @IsNotEmpty()
-  email?: string;
+  // @IsOptional()
+  // @IsNotEmpty()
+  // @IsEmail()
+  // email?: string;
 
   @IsString()
   password: string;
