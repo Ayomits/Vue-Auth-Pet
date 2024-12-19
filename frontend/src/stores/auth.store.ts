@@ -1,5 +1,6 @@
 import { authService } from "@/utils/api/auth.service";
 import { TOKEN_KEY } from "@/utils/other/Constants";
+import { jwtDecode } from "jwt-decode";
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", {
@@ -18,14 +19,25 @@ export const useAuthStore = defineStore("auth", {
     actions: {
         async initAuth() {
             const tokensFromLocalstorage = localStorage.getItem(TOKEN_KEY);
+            const now = new Date().getTime();
             if (!tokensFromLocalstorage) {
+                console.log("Очистка произошло по причине отсутствия токенов");
                 this.clearTokens();
                 return;
             }
 
-            const { access_token, refresh_token } = JSON.parse(
+            const { access_token, refresh_token, expires_at } = JSON.parse(
                 tokensFromLocalstorage
-            ) as { access_token: string; refresh_token: string };
+            ) as {
+                access_token: string;
+                refresh_token: string;
+                expires_at: number;
+            };
+            if (expires_at * 1_000 < now) {
+                console.log("Очистка произошла по причине экспарнутого токена");
+                this.clearTokens();
+                return;
+            }
             this.accessToken = access_token;
             this.refreshToken = refresh_token;
 
@@ -34,9 +46,14 @@ export const useAuthStore = defineStore("auth", {
                 if (newAccessToken) {
                     this.isAuth = true;
                 } else {
+                    console.log(
+                        "Очистка произошла по причине не ревокнутого токена"
+                    );
                     this.clearTokens();
                 }
-            } catch {
+            } catch (er) {
+                console.log("Ошибка произошла по причине бекенда пидораса");
+                console.error(er);
                 this.clearTokens();
             }
         },
@@ -64,19 +81,20 @@ export const useAuthStore = defineStore("auth", {
             }
         },
 
-        saveTokens(accessToken?: string, refreshToken?: string) {
+        saveTokens(accessToken: string, refreshToken: string) {
             if (accessToken) {
                 this.accessToken = accessToken;
             }
             if (refreshToken) {
                 this.refreshToken = refreshToken;
             }
-
+            const expires_at = jwtDecode(refreshToken).exp;
             localStorage.setItem(
                 TOKEN_KEY,
                 JSON.stringify({
                     access_token: this.accessToken,
                     refresh_token: this.refreshToken,
+                    expires_at: expires_at,
                 })
             );
         },

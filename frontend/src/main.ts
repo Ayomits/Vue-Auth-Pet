@@ -6,6 +6,6 @@ import { vuetify } from "./pluging/vuetify";
 import "./global.css";
 import { vueQuery } from "./pluging/vue-query";
 
-export const isDev = false;
+export const IS_DEV = false;
 
 createApp(App).use(router).use(pinia).use(vueQuery).use(vuetify).mount("#app");

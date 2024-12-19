@@ -8,14 +8,15 @@ datasource db {
 }
 
 model users {
-  id         String    @id @default(uuid())
-  username   String    @unique @db.VarChar(128)
-  email      String?   @unique @db.VarChar(512)
-  password   String
-  created_at DateTime? @default(now())
-  updated_at DateTime? @updatedAt
-  Profile    profiles?
+  id          String       @id @default(uuid())
+  username    String       @unique @db.VarChar(128)
+  email       String?      @unique @db.VarChar(512)
+  password    String
+  created_at  DateTime?    @default(now())
+  updated_at  DateTime?    @updatedAt
+  Profile     profiles?
 }
+
 
 model profiles {
   id          String   @id @default(uuid())

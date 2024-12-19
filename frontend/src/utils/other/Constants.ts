@@ -1,7 +1,7 @@
-import { isDev } from "@/main";
+import { IS_DEV } from "@/env";
 
 let API_URL: string;
-if (isDev) {
+if (IS_DEV) {
     API_URL = "http://localhost:3000/";
 } else {
     API_URL = "http://localhost:3000/";

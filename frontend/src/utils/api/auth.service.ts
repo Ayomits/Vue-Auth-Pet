@@ -4,7 +4,6 @@ import { AbstractService } from "./abstract.service";
 import { AxiosError } from "axios";
 // @ts-ignore
 import { AxiosResponse } from "axios";
-import { TOKEN_KEY } from "../other/Constants";
 
 interface AuthDto {
     username: string;
@@ -24,7 +23,10 @@ class AuthService extends AbstractService {
         refreshToken?: string;
     }) {
         const authStore = useAuthStore();
-        authStore.saveTokens(tokens.accessToken, tokens.refreshToken);
+        authStore.saveTokens(
+            tokens.accessToken as string,
+            tokens.refreshToken as string
+        );
     }
 
     private async handleAuthResponse(res: AxiosResponse) {
@@ -36,13 +38,6 @@ class AuthService extends AbstractService {
                 accessToken: access_token,
                 refreshToken: refresh_token,
             });
-            localStorage.setItem(
-                TOKEN_KEY,
-                JSON.stringify({
-                    access_token,
-                    refresh_token,
-                })
-            );
         }
         return res;
     }
